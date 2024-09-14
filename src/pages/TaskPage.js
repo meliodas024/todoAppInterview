@@ -60,7 +60,7 @@ export const TasksPage = () => {
   };
   const handleSaveChanges = async () => {
     try {
-      const response = await instance.patch('/task/update-state', { tasks: modifiedTasks });
+      await instance.patch('/task/update-state', { tasks: modifiedTasks });
       setModifiedTasks([]);
       toast.success('Cambios Aplicados!');
     } catch (err) {
