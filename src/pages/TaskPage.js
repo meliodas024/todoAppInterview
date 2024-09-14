@@ -13,8 +13,6 @@ export const TasksPage = () => {
   const [modifiedTasks, setModifiedTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
 
-
-
   useEffect(() => {
     const fetchTasks = async () => {
       try {
