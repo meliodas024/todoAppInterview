@@ -26,8 +26,13 @@ export const LoginPage = () => {
             toast.success('Inicio de sesión exitoso!');
             window.location.href = '/tasks';
         } catch (err) {
-            err.response.data.detail ? toast.error('Error de autenticación: ' + err.response.data.detail) :
-                toast.error('Error de autenticación');
+            if (err.response && err.response.data && err.response.data.detail) {
+                toast.error('Error de autenticación: ' + err.response.data.detail);
+            } else if (err.response && err.response.data) {
+                toast.error('Error de autenticación: Credenciales Incorrectas');
+            } else {
+                toast.error('Error de autenticación: No se pudo conectar al servidor.');
+            }
         }
     };
 
