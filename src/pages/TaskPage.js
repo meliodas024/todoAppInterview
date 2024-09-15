@@ -1,105 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import React, { useState } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
-
-import instance from '../services/axios';
-
+import useTasks from '../hooks/useTasks';
 
 export const TasksPage = () => {
 
+  const {
+    tasks,
+    modifiedTasks,
+    createTask,
+    updateTask,
+    deleteTaskById,
+    deleteAllTasks,
+    saveChanges,
+    handleTaskStateChange
+  } = useTasks();
+
   const [newTask, setNewTask] = useState({ title: '', description: '' });
-  const [tasks, setTasks] = useState([]);
-
-  const [modifiedTasks, setModifiedTasks] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await instance.get('/task/list');
-        const sortedTasks = response.data.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-        setTasks(sortedTasks);
-      } catch (err) {
-      }
-    };
-
-    fetchTasks();
-  }, []);
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
-    try {
-      const response = await instance.post('/task/create', newTask);
-      setTasks([...tasks, response.data.task]);
-      setNewTask({ title: '', description: '' });
-      toast.success('Tarea Agregada!');
-
-    } catch (err) {
-      toast.error('Ups! Algo salió mal, intente nuevamente');
-    }
+    await createTask(newTask);
+    setNewTask({ title: '', description: '' });
   };
 
-  const handleTaskStateChange = (taskId, completed) => {
-    const originalTask = tasks.find(task => task.id === taskId);
-    setTasks(tasks.map(task => task.id === taskId ? { ...task, completed } : task));
-
-    if (originalTask.completed !== completed) {
-      setModifiedTasks(prev => {
-        const alreadyModified = prev.find(task => task.id === taskId);
-        if (alreadyModified) {
-          return prev.map(task => task.id === taskId ? { ...task, completed } : task);
-        } else {
-          return [...prev, { id: taskId, completed }];
-        }
-      });
-    } else {
-      setModifiedTasks(prev => prev.filter(task => task.id !== taskId));
-    }
-  };
   const handleSaveChanges = async () => {
-    try {
-      await instance.patch('/task/update-state', { tasks: modifiedTasks });
-      setModifiedTasks([]);
-      toast.success('Cambios Aplicados!');
-    } catch (err) {
-      toast.error('Ups! Algo salió mal durante la actualización, intente nuevamente');
-    }
+    await saveChanges();
   };
   const handleDeleteAllTasks = async () => {
-    try {
-      await instance.delete('/task/delete-all');
-      setTasks([]);
-      toast.success('Todas las tareas han sido eliminadas');
-    } catch (err) {
-      toast.error('Ups! Algo salió mal durante la eliminación, intente nuevamente');
-    }
+    await deleteAllTasks();
   };
   const handleDeleteTask = async (taskId) => {
-    try {
-      await instance.delete(`/task/delete/${taskId}/`);
-      setTasks(tasks.filter(task => task.id !== taskId));
-      toast.success('Tarea eliminada!');
-    } catch (err) {
-      toast.error('Ups! Algo salió mal durante la eliminación, intente nuevamente');
-    }
+    await deleteTaskById(taskId);
   };
   const handleEditClick = (task) => {
     setEditingTask(task);
   };
   const handleEditTaskSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await instance.patch(`/task/edit/${editingTask.id}/`, {
-        title: editingTask.title,
-        description: editingTask.description,
-        completed: editingTask.completed,
-      });
-      setTasks(tasks.map(task => task.id === editingTask.id ? editingTask : task));
+    if (editingTask) {
+      await updateTask(editingTask); 
       setEditingTask(null);
-      toast.success('Tarea modificada con exito!');
-    } catch (err) {
-      toast.error('Ups! Algo salió mal durante la actualización, intente nuevamente');
-
     }
   };
   return (

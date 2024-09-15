@@ -30,8 +30,8 @@ const useTasks = () => {
     }
     const updateTask = async (updateTask) => {
         try {
-            await instance.patch(`/task.edit/${updateTask.id}/`, updateTask);
-            setTasks(tasks.map(task => (task.id === updateTask ? updateTask : task)));
+            await instance.patch(`/task/edit/${updateTask.id}/`, updateTask);
+            setTasks(tasks.map(task => (task.id === updateTask.id ? updateTask : task)));
             toast.success('Tarea actualizada');
         } catch (error) {
             toast.error('Error al actualizar la tarea');
@@ -65,28 +65,20 @@ const useTasks = () => {
         }
     }
     const handleTaskStateChange = (taskId, completed) => {
-        const originalTask = tasks.find(task => task.id === taskId);
         setTasks(tasks.map(task =>
             task.id === taskId ? { ...task, completed } : task
         ));
-
-        if (originalTask.completed !== completed) {
-            setModifiedTasks(prev => {
-                const alreadyModified = prev.find(task => task.id === taskId);
-                if (alreadyModified) {
-                    return prev.map(task =>
-                        task.id === taskId ? { ...task, completed } : task
-                    );
-                } else {
+        setModifiedTasks(prev => {
+            const alreadyModified = prev.find(task => task.id === taskId);
+    
+            if (alreadyModified) {
+                return prev.filter(task => task.id !== taskId);
+            } else {
                     return [...prev, { id: taskId, completed }];
-                }
-            });
-        } else {
-            setModifiedTasks(prev =>
-                prev.filter(task => task.id !== taskId)
-            );
-        }
+            }
+        });
     };
+    
     return {
         tasks,
         modifiedTasks,
